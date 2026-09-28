@@ -1,0 +1,6 @@
+{
+  "id": "main",
+  "displayName": "My App",
+  "app": { "bundleId": "com.example.myapp", "scheme": "myapp", "version": "1.0.0" },
+  "primaryColor": "#3D5AFE"
+}

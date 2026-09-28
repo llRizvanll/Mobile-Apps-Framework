@@ -2,6 +2,7 @@
 
 ## Claude Code specifics
 
-- Project skills live in `.claude/skills/` (`new-feature`, `new-brand`) — prefer them for scaffolding.
-- Before editing a package, read its `README.md` (public API + extension points).
-- When unsure where code belongs, check the "Where things go" table above before creating files.
+- Project skills are in `.claude/skills/`. Invoke the matching one (e.g. `feature-flags`, `new-feature`) before starting that kind of task.
+- Nested `CLAUDE.md` files in `src/framework/`, `src/features/` and `src/brands/` load local rules when you work there.
+- Before editing a framework module, read its `README.md` (public API + extension points).
+- To see the app, use `npm run ios` with the iOS simulator; the Dev tab shows live flag sources.

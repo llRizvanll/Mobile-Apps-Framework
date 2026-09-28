@@ -1,43 +1,88 @@
 // @ts-check
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import js from '@eslint/js';
 import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 /**
- * Architecture boundaries are derived from each package's declared @org/* dependencies,
- * so package.json is the single source of truth for the layer graph.
+ * ── Architecture boundaries ────────────────────────────────────────────────────────────────
+ * src/framework/layers.json is the single source of truth for which framework modules may import
+ * which. Flat config does not merge `no-restricted-imports` options across blocks, so each scope
+ * below composes its full pattern list explicitly.
  */
-const packageBoundaries = readdirSync('packages').map((name) => {
-  const pkg = JSON.parse(readFileSync(`packages/${name}/package.json`, 'utf8'));
-  const allowed = new Set(
-    Object.keys({ ...pkg.dependencies, ...pkg.peerDependencies }).filter((d) =>
-      d.startsWith('@org/'),
-    ),
-  );
-  const forbidden = readdirSync('packages')
-    .map((n) => `@org/${n}`)
-    .filter(
-      (d) => d !== pkg.name && !allowed.has(d) && !(pkg.name === '@org/di' && d === '@org/di'),
-    );
+const layers = JSON.parse(readFileSync('src/framework/layers.json', 'utf8')).modules;
+const modules = Object.keys(layers);
+
+const restrict = (...patterns) => ['error', { patterns }];
+
+const NO_DEEP_FRAMEWORK = {
+  group: ['@framework/*/*', '!@framework/di/react'],
+  message:
+    'Import a framework module from its entry point (@framework/<module>), not its internals.',
+};
+const NO_APP_LAYERS_IN_FRAMEWORK = {
+  group: ['@app/*', '@features/*', '@brands/*', '@config/*'],
+  message:
+    'The framework must not depend on the app, features, brands or app config (dependencies point into the framework).',
+};
+const NO_ESCAPE = {
+  group: ['../../*'],
+  message:
+    'Do not reach across modules with relative paths; use an alias (@framework/…, @features/…).',
+};
+const NO_SHELL_IN_FEATURES = {
+  group: ['@app/*', '@brands/*'],
+  message:
+    'Features must not depend on the app shell or on specific brands (read brand data via useBrandConfig / BrandConfigToken).',
+};
+const NO_CROSS_FEATURE = {
+  group: ['@features/*/domain/*', '@features/*/data/*', '@features/*/presentation/*'],
+  message:
+    "Don't reach into another feature's internals. Depend on its module/tokens, or promote shared code to the framework.",
+};
+const DOMAIN_RULES = [
+  {
+    group: ['react', 'react-native', 'react-redux', '@reduxjs/*'],
+    message: 'domain/ must stay framework-free.',
+  },
+  {
+    group: [
+      '@framework/network',
+      '@framework/state',
+      '@framework/ui',
+      '@framework/storage',
+      '@framework/core',
+    ],
+    message: 'domain/ defines ports; data/ implements them.',
+  },
+  {
+    group: ['**/data/**', '**/presentation/**'],
+    message: 'Dependencies point inward: presentation → domain ← data.',
+  },
+];
+const DATA_RULES = [
+  {
+    group: ['**/presentation/**', 'react', 'react-native', '@framework/ui'],
+    message: 'data/ must not depend on presentation.',
+  },
+];
+
+const frameworkBoundaries = modules.map((name) => {
+  const allowed = new Set(layers[name].dependsOn);
+  const forbidden = modules.filter((m) => m !== name && !allowed.has(m));
   return {
-    files: [`packages/${name}/src/**/*.{ts,tsx}`],
-    ignores: [`packages/${name}/src/**/__tests__/**`],
+    files: [`src/framework/${name}/**/*.{ts,tsx}`],
+    ignores: ['**/__tests__/**'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          paths: forbidden.map((d) => ({
-            name: d,
-            message: `${pkg.name} may not depend on ${d} (add it to package.json deps if intended — check the layer diagram in docs/architecture.md).`,
+          paths: forbidden.map((m) => ({
+            name: `@framework/${m}`,
+            message: `framework/${name} may not depend on framework/${m}. If intended, add it to src/framework/layers.json and review docs/architecture.md.`,
           })),
-          patterns: [
-            {
-              group: ['@org/*/src/*'],
-              message: 'Import from the package entry point, not its internals.',
-            },
-          ],
+          patterns: [NO_DEEP_FRAMEWORK, NO_APP_LAYERS_IN_FRAMEWORK, NO_ESCAPE],
         },
       ],
     },
@@ -51,7 +96,6 @@ export default tseslint.config(
       '**/dist/**',
       '**/coverage/**',
       '**/.expo/**',
-      'docs/.vitepress/**',
       '**/*.config.js',
       'scripts/templates/**',
     ],
@@ -85,50 +129,55 @@ export default tseslint.config(
       ],
     },
   },
-  ...packageBoundaries,
+  ...frameworkBoundaries,
+  {
+    files: ['src/features/**/*.{ts,tsx}'],
+    ignores: ['**/__tests__/**'],
+    rules: {
+      'no-restricted-imports': restrict(
+        NO_DEEP_FRAMEWORK,
+        NO_SHELL_IN_FEATURES,
+        NO_CROSS_FEATURE,
+        NO_ESCAPE,
+      ),
+    },
+  },
   {
     // Clean architecture: the domain layer is pure TypeScript — no UI, no I/O, no framework state.
-    files: ['**/features/*/domain/**/*.{ts,tsx}'],
+    files: ['src/features/*/domain/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['react', 'react-native', 'react-redux', '@reduxjs/*'],
-              message: 'domain/ must stay framework-free.',
-            },
-            {
-              group: ['@org/network', '@org/state', '@org/ui', '@org/storage', '@org/core'],
-              message: 'domain/ defines ports; data/ implements them.',
-            },
-            {
-              group: ['**/data/**', '**/presentation/**'],
-              message: 'Dependencies point inward: presentation → domain ← data.',
-            },
-          ],
-        },
-      ],
+      'no-restricted-imports': restrict(
+        NO_DEEP_FRAMEWORK,
+        NO_SHELL_IN_FEATURES,
+        NO_CROSS_FEATURE,
+        ...DOMAIN_RULES,
+      ),
     },
   },
   {
-    files: ['**/features/*/data/**/*.{ts,tsx}'],
+    files: ['src/features/*/data/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['**/presentation/**', 'react', 'react-native', '@org/ui'],
-              message: 'data/ must not depend on presentation.',
-            },
-          ],
-        },
-      ],
+      'no-restricted-imports': restrict(
+        NO_DEEP_FRAMEWORK,
+        NO_SHELL_IN_FEATURES,
+        NO_CROSS_FEATURE,
+        ...DATA_RULES,
+      ),
     },
   },
   {
-    files: ['**/__tests__/**', 'packages/testing/**'],
+    files: ['src/brands/**/*.{ts,tsx}'],
+    ignores: ['**/__tests__/**'],
+    rules: {
+      'no-restricted-imports': restrict(NO_DEEP_FRAMEWORK, {
+        group: ['@app/*', '@features/*'],
+        message:
+          'Brands are data + presentation overrides; they must not depend on the app shell or features.',
+      }),
+    },
+  },
+  {
+    files: ['**/__tests__/**', 'src/framework/testing/**'],
     rules: {
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/require-await': 'off',

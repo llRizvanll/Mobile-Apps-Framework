@@ -3,10 +3,15 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, development]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
+    name: verify (format · types · lint · flags · tests)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,13 +21,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run format:check
-      - run: npm run verify
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run flags -- doctor
+      - run: npm test -- --ci
 
   bundle:
+    name: bundle (production)
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        brand: [acme, globex]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,9 +36,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Metro bundle (${{ matrix.brand }})
-        working-directory: apps/example
-        run: npx expo export --platform ios --output-dir dist
+      - name: Metro bundle (iOS + Android)
+        run: npx expo export --platform ios --platform android --output-dir dist
         env:
           CI: 1
-          EXPO_PUBLIC_BRAND: ${{ matrix.brand }}
+          EXPO_PUBLIC_ENV: production

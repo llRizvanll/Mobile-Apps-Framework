@@ -1,180 +1,86 @@
-<div align="center">
+# React Native Boilerplate: TypeScript + Expo with a Built-in Framework
 
-<img src="docs/public/logo.svg" alt="Mobile App Framework logo" width="88" height="88" />
-
-# Mobile App Framework — White-Label, AI-Native React Native Framework
-
-**Build one React Native codebase and ship it as many branded iOS & Android apps.**
-Strict TypeScript · Clean Architecture · MVVM & MVI · Dependency Injection · Redux Toolkit · REST / GraphQL / WebSocket · i18n & RTL · Design Tokens · Observability · LLM tool calling
+**Clone it, build your features, ship.** A lean, production-ready React Native app where the hard parts (architecture,
+networking, state, feature flags, theming, i18n, observability, white-labelling and AI) are already integrated,
+tested and documented.
 
 [![CI](https://github.com/llRizvanll/Mobile-Apps-Framework/actions/workflows/ci.yml/badge.svg)](https://github.com/llRizvanll/Mobile-Apps-Framework/actions/workflows/ci.yml)
-[![Docs](https://github.com/llRizvanll/Mobile-Apps-Framework/actions/workflows/docs.yml/badge.svg)](https://llrizvanll.github.io/Mobile-Apps-Framework/)
-[![CodeQL](https://github.com/llRizvanll/Mobile-Apps-Framework/actions/workflows/codeql.yml/badge.svg)](https://github.com/llRizvanll/Mobile-Apps-Framework/actions/workflows/codeql.yml)
 ![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![React Native 0.86](https://img.shields.io/badge/React%20Native-0.86-61DAFB?logo=react&logoColor=black)
 ![Expo SDK 57](https://img.shields.io/badge/Expo-SDK%2057-000020?logo=expo&logoColor=white)
-[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
-
-[**Documentation**](https://llrizvanll.github.io/Mobile-Apps-Framework/) ·
-[Quick start](https://llrizvanll.github.io/Mobile-Apps-Framework/guide/getting-started) ·
-[Workflows](https://llrizvanll.github.io/Mobile-Apps-Framework/workflows/) ·
-[Architecture](docs/architecture.md) ·
-[FAQ](docs/faq.md)
-
-</div>
-
----
-
-**Mobile App Framework** is an open-source **React Native framework and starter kit** for teams that ship
-**white-label (multi-brand) mobile apps** or want a **production-grade architecture** from day one. The framework
-packages (`@org/*`) provide clean architecture, typed dependency injection, resilient networking, state management,
-theming, internationalization, observability and **AI-native** building blocks. Brands are small packages you can
-generate with one command, and a reference **Expo** app shows every piece working together.
-
-## Table of contents
-
-- [Why this framework](#why-this-framework)
-- [Features](#features)
-- [Architecture at a glance](#architecture-at-a-glance)
-- [Quick start](#quick-start)
-- [White-label: one codebase, many apps](#white-label-one-codebase-many-apps)
-- [AI-native](#ai-native)
-- [Project structure](#project-structure)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-
-## Why this framework
-
-| Common pain                                                 | What you get here                                                                                        |
-| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Architecture drifts as the team or AI agents add code       | Layer boundaries are **generated from `package.json` and enforced by ESLint** in CI                      |
-| Every brand is a fork                                       | **Brand packages**: validated config, per-environment overlays, design tokens, copy, component overrides |
-| Token refresh races, retry storms, unhandled network errors | A **`Result`-based HTTP pipeline** with single-flight refresh, backoff with Retry-After, and tracing     |
-| Business logic hidden in components                         | **Use cases** behind ports, with **MVVM** view models or **MVI** stores, all testable without rendering  |
-| Vendor lock-in (analytics, crash, storage, LLM)             | **Ports & adapters**: swap MMKV, Sentry, Segment or the LLM vendor in one file                           |
-| AI features bolted on unsafely                              | **Tools on top of use cases**, zod-validated input, human confirmation, content never logged             |
-
-## Features
-
-**Architecture**
-
-- Hexagonal packages + clean-architecture features (`domain` → `data` → `presentation`), enforced by lint
-- Typed **dependency injection** without decorators: singleton/scoped/transient, multi-bindings, cycle detection
-- **MVVM** (`ViewModel`) and **MVI** (`MviStore`), React-free and StrictMode-safe
-- **Feature modules** with dependencies, feature flags, lifecycle hooks, reducers, translations and AI tools
-
-**Data & state**
-
-- **REST** client returning `Result<T, AppError>`: middleware pipeline, retries, **OAuth token refresh**, zod response validation
-- **GraphQL** queries and mutations (codegen-typed) + **subscriptions** over `graphql-transport-ws`
-- **WebSocket** client with exponential-backoff reconnect, offline queue and heartbeat
-- **Redux Toolkit** with a typed state registry, lazy slices, and **versioned persistence with migrations**
-- Storage ports: key-value (MMKV / AsyncStorage), **secure storage** (Keychain/Keystore), **SQLite** with migrations
-
-**Experience**
-
-- **Design tokens** (base → semantic → component), light/dark, **WCAG contrast audit**
-- **Atomic design** UI kit (atoms → templates) with a **brand override registry**, accessible by default
-- **i18n**: ICU-style interpolation, `Intl` plurals, lazy locales, compile-time checked keys, **RTL**
-
-**Operations**
-
-- Structured logging with **PII redaction**, crash reporting, **consent-aware analytics**, **W3C traceparent** tracing
-- Traced boot phases, typed analytics events, global error handler + React error boundary
-
-**Developer experience**
-
-- Generators: `gen:feature`, `gen:brand` · strict TS (`exactOptionalPropertyTypes`) · Jest + RNTL test harness
-- `AGENTS.md`, `CLAUDE.md`, `llms.txt`, Claude Code skills for **AI coding agents**
-- CI: format, typecheck, lint, tests, per-brand Metro bundle, CodeQL, docs deploy
-
-## Architecture at a glance
-
-```mermaid
-flowchart LR
-  subgraph App["apps/example (composition root)"]
-    AD[Platform adapters] --> K
-    M[Feature modules] --> K[createApp]
-    B[Brand] --> K
-  end
-  K --> C[(DI container)]
-  K --> S[(Redux store)]
-  UI[Screens] --> VM[ViewModel / MviStore] --> UC[Use cases] --> R[Repositories] --> N[HTTP · GraphQL · WS]
-  AG[AI agent] --> T[Tools] --> UC
-```
-
-Read more: [Architecture](docs/architecture.md) · [App boot](docs/workflows/app-boot.md) · [Request lifecycle](docs/workflows/request-lifecycle.md) · [AI agent loop](docs/workflows/ai-agent.md)
 
 ## Quick start
 
 ```bash
-git clone https://github.com/llRizvanll/Mobile-Apps-Framework.git
-cd Mobile-Apps-Framework
+git clone https://github.com/llRizvanll/Mobile-Apps-Framework.git my-app && cd my-app
 npm install
-npm run verify                                  # typecheck + lint + tests
-
-cd apps/example
-EXPO_PUBLIC_BRAND=acme npx expo run:ios         # runs against a built-in mock API
+npm run verify              # typecheck + lint + tests
+cp .env.example .env
+npm run ios                 # or npm run android. Runs against a built-in mock API
 ```
 
-Create things:
+Then make it yours ([guide](docs/getting-started.md#make-it-your-app-30-minutes)). When you're ready for a clean slate,
+`npm run examples:remove -- --yes` strips the demo features, their flags and mock routes.
+
+## What's included
+
+|                     |                                                                                                                     |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Architecture**    | Clean-architecture features (domain / data / presentation), MVVM + MVI, typed DI, lint-enforced layer boundaries    |
+| **Feature flags**   | Typed registry, per-brand/environment values, remote config, env-var and on-device overrides, Dev panel, CLI        |
+| **Networking**      | REST with `Result` errors, retries and single-flight token refresh · GraphQL + subscriptions · WebSocket · mock API |
+| **State & storage** | Redux Toolkit with versioned persistence · secure storage · key-value · SQLite port                                 |
+| **UI**              | Design tokens, light/dark, accessible atomic components, i18n with plurals and RTL                                  |
+| **Operations**      | Structured logs (PII-redacted), crash reporting, consent-aware analytics, tracing                                   |
+| **AI**              | In-app assistant calling your use cases as tools, plus `AGENTS.md`, skills and generators for coding agents         |
+| **Delivery**        | Jest + RNTL harness, CI, EAS build profiles, white-label brands                                                     |
+
+Everything vendor-specific sits behind a port, and the defaults are wired in one file (`src/app/bootstrap/adapters.ts`).
+
+## Build a feature
 
 ```bash
-npm run gen:feature -- orders --flag
-npm run gen:brand -- initech --name "Initech Ops" --bundle com.initech.ops --color "#6A1B9A"
+npm run gen:feature -- orders --flag --on
 ```
 
-## White-label: one codebase, many apps
+This creates `src/features/orders/` (domain, data, view model, screen, AI tools, tests), registers the module, adds its tab and a feature flag. → [Building features](docs/features.md)
 
-```ts
-export default defineBrand({
-  config: { id: 'acme', api: { rest: { baseUrl: 'https://api.acme.example/v1' } }, features: { assistant: true }, ... },
-  environments: { production: { observability: { logLevel: 'warn', requireConsent: true } } },
-  theme: { colors: { light: { primary: '#C2185B' } }, components: { button: { radius: 'pill' } } },
-  translations: { en: { brand: { tagline: 'Get things done.' } } },
-  components: { Button: AcmeButton },
-});
-```
+## Turn features on and off
 
 ```bash
-EXPO_PUBLIC_BRAND=globex npx expo run:ios       # different name, bundle id, theme, flags, copy
+EXPO_PUBLIC_FEATURES=assistant=off npm start     # this run only
+npm run flags -- off assistant                   # default for the app
+npm run flags                                    # see all flags
 ```
 
-Every brand is contract-tested: its config must be valid in **every environment** and its colours must pass **WCAG AA**. → [White-label release workflow](docs/workflows/white-label-release.md)
+The in-app **Dev** tab toggles flags on device and shows where each value comes from. → [Feature flags](docs/feature-flags.md)
 
-## AI-native
-
-- **In the app**: features expose typed **tools** (`todos.add`) backed by the same use cases as the UI. A vendor-neutral `AIClient` talks to your backend, and the agent loop asks the user to confirm side effects. → [AI agent workflow](docs/workflows/ai-agent.md)
-- **For coding agents**: [`AGENTS.md`](AGENTS.md), [`CLAUDE.md`](CLAUDE.md), [`llms.txt`](llms.txt), [skills](.claude/skills), generators, and lint that keeps agents inside the architecture. → [AI-native development](docs/guide/ai-native.md)
-
-## Project structure
+## Project layout
 
 ```text
-packages/        @org/* framework: foundation · di · observability · storage · network · state
-                 i18n · theme · presentation · ui · ai · core · testing
-brands/          acme · globex (config, theme, copy, overrides, native.json)
-apps/example/    Expo reference app: todos (MVVM), assistant (MVI + AI), settings
-scripts/         generators, docs sync
-docs/            VitePress site: guides, workflows, ADRs, reference
+src/app/          App shell, composition root, platform adapters, mock API
+src/features/     your product (todos = reference feature, assistant, settings, devtools)
+src/brands/main/  app identity, config, theme, copy, feature values
+src/config/       feature-flag registry
+src/framework/    the built-in framework: foundation · di · observability · storage · network · state
+                  i18n · theme · presentation · ui · ai · core · testing
 ```
 
-Full tour: [Project structure](docs/guide/project-structure.md) · [Learning path](docs/guide/learning-path.md)
+## Scripts
 
-## Documentation
+| Script                              |                                                   |
+| ----------------------------------- | ------------------------------------------------- |
+| `npm start` · `ios` · `android`     | run                                               |
+| `npm run verify`                    | typecheck + lint + tests                          |
+| `npm run bundle:check`              | production bundle check                           |
+| `npm run gen:feature` · `gen:brand` | scaffold a feature / brand                        |
+| `npm run flags`                     | feature-flag CLI                                  |
+| `npm run examples:remove`           | remove the demo features (dry run unless `--yes`) |
 
-| Guide                                            | Workflows                                                               | Reference                                    |
-| ------------------------------------------------ | ----------------------------------------------------------------------- | -------------------------------------------- |
-| [Introduction](docs/guide/introduction.md)       | [App boot](docs/workflows/app-boot.md)                                  | [Packages](docs/reference/README.md)         |
-| [Quick start](docs/guide/getting-started.md)     | [Request lifecycle](docs/workflows/request-lifecycle.md)                | [Architecture decisions](docs/adr/README.md) |
-| [Core concepts](docs/guide/core-concepts.md)     | [State & persistence](docs/workflows/state-and-persistence.md)          | [Glossary](docs/glossary.md)                 |
-| [Building features](docs/features.md)            | [Feature development](docs/workflows/feature-development.md)            | [FAQ](docs/faq.md)                           |
-| [Brands](docs/brands.md)                         | [White-label release](docs/workflows/white-label-release.md)            | [Troubleshooting](docs/troubleshooting.md)   |
-| [AI-native development](docs/guide/ai-native.md) | [Testing](docs/workflows/testing.md) · [CI/CD](docs/workflows/ci-cd.md) | [AGENTS.md](AGENTS.md)                       |
+## Docs
 
-## Contributing
+[Getting started](docs/getting-started.md) · [Architecture](docs/architecture.md) · [Features](docs/features.md) ·
+[Feature flags](docs/feature-flags.md) · [Configuration, build & release](docs/configuration.md) · [Brands](docs/brands.md) ·
+[Integrations](docs/integrations.md) · [AI](docs/ai.md) · [Decisions](docs/decisions.md) · [Troubleshooting](docs/troubleshooting.md)
 
-Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md), follow the [Code of Conduct](CODE_OF_CONDUCT.md), and report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
-
-If this project helps you, please ⭐ **star the repo**. It helps other React Native developers find it.
-
-<sub>Keywords: React Native framework, React Native boilerplate, white-label mobile app, multi-brand app, Expo monorepo, TypeScript, clean architecture, MVVM, MVI, dependency injection, Redux Toolkit, GraphQL, WebSocket, i18n, RTL, design system, observability, AI agents, LLM tool calling.</sub>
+AI coding agents: start with [`AGENTS.md`](AGENTS.md).

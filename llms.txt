@@ -1,26 +1,14 @@
-# Mobile App Framework
+# React Native Boilerplate (TypeScript + Expo, built-in framework)
 
-> White-label, AI-native React Native framework in TypeScript (strict). Hexagonal packages (@org/*),
-> clean-architecture feature modules, MVVM/MVI, typed DI, Redux Toolkit, REST/GraphQL/WebSocket,
-> i18n + RTL, design tokens, observability, vendor-neutral AI with tool calling.
+> Lean React Native app starter. The repo root is the Expo app; the framework lives in src/framework. Clean
+> architecture, MVVM/MVI, typed DI, Redux Toolkit, REST/GraphQL/WebSocket, feature flags, i18n/RTL, design tokens,
+> white-label brands, observability and AI tool calling, all integrated and tested.
 
-Docs site: https://llrizvanll.github.io/Mobile-Apps-Framework/
+- [AGENTS.md](AGENTS.md): commands, invariants, where code goes, skills
+- [Getting started](docs/getting-started.md) · [Architecture](docs/architecture.md) · [Building features](docs/features.md)
+- [Feature flags](docs/feature-flags.md) · [Configuration, build & release](docs/configuration.md) · [Brands](docs/brands.md)
+- [Integrations](docs/integrations.md) · [AI](docs/ai.md) · [Decisions](docs/decisions.md) · [Troubleshooting](docs/troubleshooting.md)
+- [Framework modules](src/framework/README.md)
 
-## Start here
-- [AGENTS.md](AGENTS.md): commands, invariants, where code goes
-- [Architecture](docs/architecture.md): layer graph, boot sequence, HTTP pipeline, patterns
-- [Building features](docs/features.md): checklist and rules of thumb
-- [Brands](docs/brands.md): white-labelling and brand repos
-- [ADRs](docs/adr/README.md): why things are the way they are
-- [Workflows](docs/workflows/README.md): boot, request lifecycle, state, AI agent, feature dev, release, testing, CI/CD
-- [Core concepts](docs/guide/core-concepts.md) · [Glossary](docs/glossary.md) · [FAQ](docs/faq.md) · [Troubleshooting](docs/troubleshooting.md)
-
-## Packages
-- [foundation](packages/foundation/README.md), [di](packages/di/README.md), [observability](packages/observability/README.md), [storage](packages/storage/README.md)
-- [network](packages/network/README.md), [state](packages/state/README.md), [i18n](packages/i18n/README.md), [theme](packages/theme/README.md)
-- [presentation](packages/presentation/README.md), [ui](packages/ui/README.md), [ai](packages/ai/README.md), [core](packages/core/README.md), [testing](packages/testing/README.md)
-
-## Reference implementation
-- [todos feature](apps/example/src/features/todos): domain → data → MVVM → AI tools → module
-- [assistant feature](apps/example/src/features/assistant): MVI store running the agent loop
-- [composition root](apps/example/src/bootstrap)
+Code entry points: src/app/bootstrap/bootstrapApplication.ts (composition root) · src/app/modules.ts (feature modules) ·
+src/config/feature-flags.json (flags) · src/features/todos (reference feature) · src/app/bootstrap/adapters.ts (vendors)

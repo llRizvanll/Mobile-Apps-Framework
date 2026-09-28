@@ -1,127 +1,125 @@
----
-title: Architecture
-description: 'Architecture of the React Native framework: hexagonal packages, enforced layer graph, clean-architecture features, boot sequence, HTTP pipeline, design patterns and observability.'
----
-
 # Architecture
 
-> Hexagonal (ports & adapters) framework + clean-architecture features + a module kernel.
-> Everything above the adapters is plain TypeScript that runs in Jest/Node without a device.
-
-## Layer graph
-
-Arrows mean "may import". Enforced by ESLint (`no-restricted-imports`), generated from each
-package's `package.json` dependencies — **to add an edge, add the dependency; review it here first.**
+One Expo app. Inside it: **features** (your product) composed by an **app shell**, customised by **brands**, and
+powered by a **built-in framework** (`src/framework`, ports & adapters). Everything above the adapters is plain
+TypeScript that runs in Jest without a device.
 
 ```mermaid
-graph TD
-  foundation["foundation<br/>Result · AppError · Emitter · ObservableStore"]
-  di["di<br/>Container · Token · scopes · multi-bind"]
-  obs["observability<br/>Logger · CrashReporter · Analytics · Tracer"]
-  storage["storage<br/>KeyValueStore · SecureStore · Database"]
-  network["network<br/>HttpClient · GraphQL · WebSocket"]
-  state["state<br/>Redux store · persistence · shell slices"]
-  i18n["i18n<br/>I18nService · plurals · RTL"]
-  theme["theme<br/>tokens · light/dark · brand overrides"]
-  presentation["presentation<br/>ViewModel (MVVM) · MviStore (MVI)"]
-  ui["ui<br/>atoms → templates · override registry"]
-  ai["ai<br/>AIClient port · tools · agent loop"]
-  core["core<br/>BrandConfig · modules · kernel · FrameworkProvider"]
-  testing["testing<br/>test app · mock transport · fakes"]
-
-  di --> foundation
-  obs --> di
-  storage --> di
-  network --> obs
-  network --> di
-  state --> storage
-  i18n --> di
-  theme --> foundation
-  presentation --> foundation
-  ui --> theme
-  ui --> i18n
-  ai --> network
-  ai --> obs
-  core --> ai & ui & state & presentation & storage
-  testing --> core
+flowchart LR
+  subgraph src
+    APP["app/<br/>shell · composition root · adapters"]
+    FEAT["features/<br/>todos · assistant · settings · devtools"]
+    BR["brands/<br/>main"]
+    CFG["config/<br/>feature-flags.json"]
+    FW["framework/<br/>13 modules"]
+  end
+  APP --> FEAT & BR & CFG & FW
+  FEAT --> FW & CFG
+  BR --> FW
 ```
 
-| Package         | Owns                                                                                                                                   | Key ports (interfaces you implement)                                          |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `foundation`    | `Result`, `AppError` taxonomy, `Emitter`, `ObservableStore`, `deepMerge`, backoff, `singleFlight`, `Clock`                             | `Parser<T>` (zod-compatible)                                                  |
-| `di`            | Typed container, `Token<T>`, singleton/scoped/transient, multi-bindings, cycle detection                                               | `ServiceModule`                                                               |
-| `observability` | Logger with PII redaction, composite analytics w/ consent, tracer (W3C traceparent)                                                    | `LogSink`, `CrashReporter`, `AnalyticsProvider`, `SpanExporter`               |
-| `storage`       | Namespacing, typed/TTL entries, SQL migrations                                                                                         | `KeyValueStore`, `SecureStore`, `Database`, `Repository<T>`                   |
-| `network`       | REST client (Result-based), middleware (auth refresh, retry, tracing, logging), GraphQL, resilient WebSocket, graphql-ws subscriptions | `HttpTransport`, `AccessTokenProvider`, `AuthRefreshPort`, `WebSocketFactory` |
-| `state`         | Store factory, lazy reducers, versioned persistence + migrations, shell slices (`app`, `session`, `settings`)                          | —                                                                             |
-| `i18n`          | ICU-lite interpolation, `Intl.PluralRules`, locale fallback chains, lazy locales, RTL sync                                             | `LayoutDirectionAdapter`, device locales                                      |
-| `theme`         | Base → semantic → component tokens, light/dark, WCAG contrast audit                                                                    | —                                                                             |
-| `presentation`  | `ViewModel` (MVVM), `MviStore` (MVI), React bindings                                                                                   | —                                                                             |
-| `ui`            | Atomic components, brand override registry                                                                                             | `UIComponentMap` slots                                                        |
-| `ai`            | Vendor-neutral chat/stream API, tool registry, agent loop, SSE, observability decorator                                                | `AIClient`, `AITool`                                                          |
-| `core`          | Brand config (zod), module system, kernel, `FrameworkProvider`, feature flags                                                          | `PlatformAdapters`, `RemoteConfigProvider`                                    |
+## Folders
 
-## Feature architecture (clean architecture)
-
-```
-features/<name>/
-  domain/        entities, value rules, repository PORTS, use cases     ← pure TS, no React/IO
-  data/          DTO schemas (zod), mappers, repository ADAPTERS         ← HttpClient, storage
-  presentation/  ViewModel (MVVM) or MviStore (MVI) + screens           ← React, @org/ui
-  ai/            AITool definitions calling the same use cases
-  tokens.ts      DI tokens for this feature
-  translations.ts
-  module.ts      the ONLY thing the app imports
+```text
+src/app/          App.tsx · AppShell.tsx (tabs from active modules) · modules.ts · env.ts
+  bootstrap/      bootstrapApplication.ts (composition root) · adapters.ts (native/vendor SDKs) · brands.ts · mockBackend.ts
+src/features/<f>/ domain/ · data/ · presentation/ · ai/ · tokens.ts · translations.ts · module.ts · __tests__/
+src/brands/<id>/  index.ts (defineBrand) · native.json (store identity) · features.json (flag values)
+src/config/       feature-flags.json (registry) · featureFlags.ts (typed hooks)
+src/framework/    foundation · di · observability · storage · network · state · i18n · theme · presentation · ui · ai · core · testing
 ```
 
-Dependencies point inward: `presentation → domain ← data`. Lint enforces it.
+Aliases: `@framework/<module>`, `@features/…`, `@brands/…`, `@config/…`, `@app/…` (tsconfig `paths`, mirrored by Jest; Metro reads tsconfig).
 
-**MVVM or MVI?** Use a `ViewModel` for CRUD-ish screens (state + commands). Use an `MviStore` when
-the flow is a state machine or needs an auditable intent log (chat, checkout, onboarding, multi-step
-forms). Both are React-free and unit-testable.
+## Dependency rules (ESLint enforces these)
 
-## Composition & boot
+| From                | May import                                                                  | May not import                                                         |
+| ------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `src/framework/<m>` | modules listed for it in `src/framework/layers.json`                        | app, features, brands, config; other modules' internals                |
+| `src/features/<f>`  | `@framework/*` entry points, `@config/*`, other features' `module`/`tokens` | `@app/*`, `@brands/*`, other features' `domain`/`data`/`presentation`  |
+| `features/*/domain` | foundation-level framework types                                            | React, RN, Redux, network, storage, ui, core, `data/`, `presentation/` |
+| `features/*/data`   | domain, framework I/O modules                                               | `presentation/`, React, RN, ui                                         |
+| `src/brands/<b>`    | `@framework/*`                                                              | app, features                                                          |
 
+Framework layers: `foundation` ← `di` ← `observability`, `storage`, `i18n` · `theme`, `presentation` ← foundation ·
+`network` ← observability · `state` ← storage · `ui` ← theme, i18n · `ai` ← network · `core` ← all · `testing` ← core.
+To add an edge, edit `layers.json` and justify it.
+
+## Framework modules
+
+| Module        | Owns                                                                                       | Ports you implement                                             |
+| ------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| foundation    | `Result`, `AppError`, `Emitter`, `ObservableStore`, backoff, `singleFlight`                | `Parser<T>` (zod-compatible)                                    |
+| di            | typed container, `Token<T>`, lifetimes, multi-bindings, cycle detection                    | —                                                               |
+| observability | logger (PII redaction), consent-aware analytics, tracer (`traceparent`)                    | `LogSink`, `CrashReporter`, `AnalyticsProvider`, `SpanExporter` |
+| storage       | namespacing, typed/TTL entries, SQL migrations                                             | `KeyValueStore`, `SecureStore`, `Database`                      |
+| network       | REST (`Result`), middleware, GraphQL, WebSocket, graphql-ws                                | `HttpTransport`, `AccessTokenProvider`, `AuthRefreshPort`       |
+| state         | Redux store factory, persistence + migrations, shell slices (`app`, `session`, `settings`) | —                                                               |
+| i18n          | interpolation, plurals, fallback chains, RTL                                               | `LayoutDirectionAdapter`                                        |
+| theme         | design tokens, light/dark, WCAG contrast audit                                             | —                                                               |
+| presentation  | `ViewModel` (MVVM), `MviStore` (MVI) + hooks                                               | —                                                               |
+| ui            | atomic components, brand override registry                                                 | `UIComponentMap` slots                                          |
+| ai            | chat/stream client, tool registry, agent loop, SSE                                         | `AIClient`, `AITool`                                            |
+| core          | brand config, modules (+tabs), kernel, feature flags, `FrameworkProvider`                  | `PlatformAdapters`, `RemoteConfigProvider`                      |
+| testing       | `createTestApp`, `renderWithFramework`, mock transport                                     | —                                                               |
+
+## Boot sequence
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant App as App.tsx
+  participant B as bootstrapApplication
+  participant K as createApp (kernel)
+  participant P as FrameworkProvider
+  App->>B: appEnv + platform adapters
+  B->>B: resolve brand, read persisted flag overrides (non-production)
+  B->>K: brand, environment, modules, flags
+  K->>K: validate brand config (zod) → feature flags → active modules (flags + requires, topo-sorted)
+  K->>K: DI container (framework services → module.register) → Redux store
+  K-->>App: FrameworkApp (or ConfigError screen)
+  App->>P: render
+  P->>K: start() — traced: rehydrate → locale/RTL → remote flags → consent → AI tools → module.onStart
+  K-->>P: phase = ready → AppShell renders tabs of active modules
 ```
-createApp({ brand, environment, modules, adapters })
-  ├─ resolveBrandConfig     base ⊕ env overlay → zod validation → deep-frozen
-  ├─ resolveModules         feature-flag filter → dependency topo-sort (cycle/missing checks)
-  ├─ Container              framework services → module.register() → overrides (tests)
-  └─ createAppStore         shell + module reducers, persistence middleware
 
-app.start()   (traced: app.start.* spans)
-  rehydrate → locale (persisted ▸ device ▸ default, RTL sync) → remote flags → consent
-  → register AI tools → wire shell effects → module.onStart() (dependency order) → phase=ready
+Module flags are evaluated during composition, so changing one needs a restart. Services are lazy factories, so modules can provide ports (e.g. auth tokens) before the HTTP client is built.
+
+## Request pipeline
+
+`brand headers + Accept-Language → tracing (traceparent) → logging → retry (idempotent, backoff, Retry-After) → auth → module middleware → status check → transport`
+
+```mermaid
+sequenceDiagram
+  participant A as Request A
+  participant B as Request B
+  participant MW as auth middleware
+  participant RP as AuthRefreshPort
+  participant API
+  A->>MW: GET /me
+  B->>MW: GET /todos
+  MW->>API: both with old token
+  API-->>MW: 401, 401
+  MW->>RP: refresh() once (B joins the same promise)
+  RP-->>MW: true
+  MW->>API: replay A and B with new token
+  Note over MW: refresh false → onRefreshFailed() (sign out) and the 401 is returned
 ```
 
-`FrameworkProvider` = Redux → DI → i18n → Theme (persisted preference) → UI overrides → ErrorBoundary
-(→ CrashReporter), gating on boot phase with retry.
+Clients never throw: they return `Result<HttpResponse<T>, AppError>` with `code` (`network`, `timeout`, `unauthorized`,
+`http`, `validation`…), `retryable` and `userMessageKey`.
 
-## HTTP pipeline (outermost first)
+## Where state lives
 
-`headers (brand, locale, version) → tracing (traceparent) → logging → retry → auth (401 → single-flight refresh → replay) → module middleware → status check → transport`
+| State                                          | Home                                                               |
+| ---------------------------------------------- | ------------------------------------------------------------------ |
+| Secrets (tokens)                               | `SecureStoreToken`                                                 |
+| App-wide / persisted (session, settings, cart) | Redux slice; persist via `module.persist`                          |
+| Server data                                    | repository (+ cache decorator)                                     |
+| Screen state                                   | `ViewModel` (CRUD) or `MviStore` (state machines, auditable flows) |
 
-Clients return `Result<HttpResponse<T>, AppError>`; nothing throws across the data boundary.
+## Patterns
 
-## Design patterns in use
-
-| Pattern                                                 | Where                                                        |
-| ------------------------------------------------------- | ------------------------------------------------------------ |
-| Ports & Adapters                                        | every native/vendor dependency (`PlatformAdapters`)          |
-| Dependency Injection / Service Locator at the edge only | `Container`; features get deps via constructors              |
-| Composite                                               | analytics providers, crash reporters, log sinks              |
-| Decorator                                               | `CachedTodoRepository`, `withObservability(AIClient)`        |
-| Chain of Responsibility                                 | HTTP middleware                                              |
-| Strategy                                                | `HttpTransport`, `WebSocketFactory`, `AIClient` adapters     |
-| Observer                                                | `Emitter`, `ObservableStore`, Redux listeners                |
-| Repository                                              | `domain/*Repository.ts` ports                                |
-| Plugin / Module                                         | `FrameworkModule`, multi-bindings (tools, middleware, sinks) |
-| Registry                                                | UI component overrides, AI `ToolRegistry`                    |
-| Single-flight                                           | token refresh                                                |
-
-## Observability
-
-- **Logs**: structured, levelled, PII keys redacted before any sink; errors → crash reporter, others → breadcrumbs.
-- **Traces**: boot phases, every HTTP call (propagated to backend via `traceparent`), AI calls.
-- **Analytics**: typed event map (declaration merging), consent-gated, super-props (brand/env/version).
-- **Crashes**: global JS handler + React error boundary, tagged with brand/env, user set on sign-in.
+Ports & Adapters (every vendor) · DI (constructor injection) · Module/Plugin (`FrameworkModule`, multi-bindings) ·
+Repository · Decorator (`CachedTodoRepository`, `withObservability`) · Chain of Responsibility (HTTP middleware) ·
+Composite (analytics, sinks) · Registry (UI slots, tools, flags, tabs) · Feature Toggle · Single-flight (token refresh).

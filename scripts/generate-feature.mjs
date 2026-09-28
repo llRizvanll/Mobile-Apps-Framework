@@ -2,12 +2,15 @@
 /**
  * Scaffolds a clean-architecture feature module and registers it with the app.
  *
- *   npm run gen:feature -- <name> [--entity Name] [--app example] [--flag] [--dry-run]
+ *   npm run gen:feature -- <name> [--entity Name] [--flag [--on]] [--dry-run]
+ *
+ * --flag  gate the module behind a new `module` flag in src/config/feature-flags.json (default off;
+ *         add --on to default it on). Without --flag the feature is always compiled in and active.
  *
  * Produces domain/ (entity, port, use case) → data/ (DTO + REST repo) → presentation/ (MVVM VM +
  * screen) → ai/ (tools) → module.ts, plus tests. See docs/features.md for the conventions.
  */
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   ROOT,
@@ -24,12 +27,9 @@ import {
 const args = parseArgs(process.argv.slice(2));
 const name = args._[0];
 if (!name || !/^[a-z][a-z0-9-]*$/.test(name))
-  fail('Usage: npm run gen:feature -- <kebab-name> [--entity Name] [--app example] [--flag]');
+  fail('Usage: npm run gen:feature -- <kebab-name> [--entity Name] [--flag [--on]]');
 
-const app = args.app ?? 'example';
-const appDir = join(ROOT, 'apps', app);
-if (!existsSync(appDir)) fail(`App "${app}" not found in apps/`);
-const featureDir = join(appDir, 'src', 'features', name);
+const featureDir = join(ROOT, 'src', 'features', name);
 if (existsSync(featureDir) && !args.force) fail(`Feature "${name}" already exists`);
 
 const E = args.entity ?? pascal(singular(name)); // Entity
@@ -41,7 +41,7 @@ const ns = camel(name); // i18n namespace
 
 const files = {
   [`domain/${E}.ts`]: `
-import type { Branded } from '@org/foundation';
+import type { Branded } from '@framework/foundation';
 
 export type ${E}Id = Branded<string, '${E}Id'>;
 
@@ -52,7 +52,7 @@ export interface ${E} {
 }
 `,
   [`domain/${E}Repository.ts`]: `
-import type { AppError, Result } from '@org/foundation';
+import type { AppError, Result } from '@framework/foundation';
 import type { ${E} } from './${E}';
 
 /** Port — implemented in data/. */
@@ -61,7 +61,7 @@ export interface ${E}Repository {
 }
 `,
   'domain/usecases.ts': `
-import type { AppError, Result } from '@org/foundation';
+import type { AppError, Result } from '@framework/foundation';
 import type { ${E} } from './${E}';
 import type { ${E}Repository } from './${E}Repository';
 
@@ -90,8 +90,8 @@ export const toDomain = (dto: z.output<typeof ${e}DtoSchema>): ${E} => ({
 });
 `,
   [`data/Rest${E}Repository.ts`]: `
-import { mapResult } from '@org/foundation';
-import type { HttpClient } from '@org/network';
+import { mapResult } from '@framework/foundation';
+import type { HttpClient } from '@framework/network';
 import type { ${E}Repository } from '../domain/${E}Repository';
 import { ${e}ListDtoSchema, toDomain } from './dto';
 
@@ -105,7 +105,7 @@ export class Rest${E}Repository implements ${E}Repository {
 }
 `,
   'tokens.ts': `
-import { createToken } from '@org/di';
+import { createToken } from '@framework/di';
 import type { ${E}Repository } from './domain/${E}Repository';
 import type { Get${Es} } from './domain/usecases';
 
@@ -113,8 +113,8 @@ export const ${E}RepositoryToken = createToken<${E}Repository>('${name}.Reposito
 export const Get${Es}Token = createToken<Get${Es}>('${name}.Get${Es}');
 `,
   [`presentation/${Es}ViewModel.ts`]: `
-import type { AppError } from '@org/foundation';
-import { ViewModel } from '@org/presentation';
+import type { AppError } from '@framework/foundation';
+import { ViewModel } from '@framework/presentation';
 import type { ${E} } from '../domain/${E}';
 import type { Get${Es} } from '../domain/usecases';
 
@@ -148,10 +148,10 @@ export class ${Es}ViewModel extends ViewModel<${Es}State> {
   [`presentation/${Es}Screen.tsx`]: `
 import { FlatList, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useResolver } from '@org/core';
-import { useTranslation } from '@org/i18n';
-import { useViewModel } from '@org/presentation';
-import { Divider, EmptyState, ErrorState, ListItem, Screen, Text } from '@org/ui';
+import { useResolver } from '@framework/core';
+import { useTranslation } from '@framework/i18n';
+import { useViewModel } from '@framework/presentation';
+import { Divider, EmptyState, ErrorState, ListItem, Screen, Text } from '@framework/ui';
 import { Get${Es}Token } from '../tokens';
 import type { ${Es}Resources } from '../translations';
 import { ${Es}ViewModel } from './${Es}ViewModel';
@@ -186,8 +186,8 @@ export function ${Es}Screen() {
 }
 `,
   'ai/tools.ts': `
-import { defineTool } from '@org/ai';
-import type { Resolver } from '@org/di';
+import { defineTool } from '@framework/ai';
+import type { Resolver } from '@framework/di';
 import { Get${Es}Token } from '../tokens';
 
 /** AI capabilities — call the same use cases as the UI. */
@@ -207,6 +207,7 @@ export const ${es}Tools = (r: Resolver) => [
   'translations.ts': `
 export const en = {
   ${ns}: {
+    tab: '${pascal(name).replace(/([a-z])([A-Z])/g, '$1 $2')}',
     title: '${pascal(name).replace(/([a-z])([A-Z])/g, '$1 $2')}',
     empty: 'Nothing here yet',
     errors: { generic: 'Something went wrong.' },
@@ -216,26 +217,28 @@ export const en = {
 export type ${Es}Resources = typeof en;
 `,
   'module.ts': `
-import { defineModule } from '@org/core';
-import { HttpClientToken } from '@org/network';
+${args.flag ? "import { flag } from '@config/featureFlags';\n" : ''}import { defineModule } from '@framework/core';
+import { HttpClientToken } from '@framework/network';
 import { ${es}Tools } from './ai/tools';
 import { Rest${E}Repository } from './data/Rest${E}Repository';
 import { Get${Es} } from './domain/usecases';
+import { ${Es}Screen } from './presentation/${Es}Screen';
 import { ${E}RepositoryToken, Get${Es}Token } from './tokens';
 import { en } from './translations';
 
 export const ${moduleName} = defineModule({
-  id: '${name}',${args.flag ? `\n  featureFlag: '${name}',` : ''}
+  id: '${name}',${args.flag ? `\n  featureFlag: flag('${ns}'),` : ''}
   register(c) {
     c.bind(${E}RepositoryToken).toFactory((r) => new Rest${E}Repository(r.get(HttpClientToken)));
     c.bind(Get${Es}Token).toClass(Get${Es}, [${E}RepositoryToken] as const);
   },
   translations: { en },
   tools: ${es}Tools,
+  tabs: [{ key: '${name}', titleKey: '${ns}.tab', component: ${Es}Screen, order: 50 }],
 });
 `,
   [`__tests__/${name}.test.ts`]: `
-import { AppError, err, ok } from '@org/foundation';
+import { AppError, err, ok } from '@framework/foundation';
 import type { ${E}, ${E}Id } from '../domain/${E}';
 import type { ${E}Repository } from '../domain/${E}Repository';
 import { Get${Es} } from '../domain/usecases';
@@ -268,26 +271,47 @@ describe('${name} feature', () => {
 `,
 };
 
-console.log(`\nFeature "${name}" (entity ${E}) → apps/${app}/src/features/${name}`);
+console.log(`\nFeature "${name}" (entity ${E}) → src/features/${name}`);
 if (args['dry-run']) {
   Object.keys(files).forEach((f) => console.log(`  would create ${f}`));
   process.exit(0);
 }
 writeFiles(featureDir, files, { force: !!args.force });
 
-const composition = join(appDir, 'src', 'bootstrap', 'createApplication.ts');
+const registryFile = join(ROOT, 'src', 'app', 'modules.ts');
 insertAfterLast(
-  composition,
-  /^import .* from '\.\.\/features\//,
-  `import { ${moduleName} } from '../features/${name}/module';`,
+  registryFile,
+  /^import .* from '@features\//,
+  `import { ${moduleName} } from '@features/${name}/module';`,
 );
-replaceIn(composition, /export const appModules = \[([^\]]*)\]/, (_m, list) =>
+replaceIn(registryFile, /export const appModules = \[([^\]]*)\]/, (_m, list) =>
   list.includes(moduleName) ? _m : `export const appModules = [${list.trim()}, ${moduleName}]`,
 );
 
+if (args.flag) {
+  const flagsFile = join(ROOT, 'src', 'config', 'feature-flags.json');
+  const registry = JSON.parse(readFileSync(flagsFile, 'utf8'));
+  if (!(ns in registry)) {
+    registry[ns] = {
+      default: !!args.on,
+      kind: 'module',
+      description: `${pascal(name)} feature module.`,
+      owner: 'app-team',
+    };
+    writeFileSync(flagsFile, `${JSON.stringify(registry, null, 2)}\n`);
+    console.log(
+      `  ~ src/config/feature-flags.json (flag "${ns}", default ${args.on ? 'on' : 'off'})`,
+    );
+  }
+}
+
 console.log(`
-✔ Done. Next:
-  1. Model your entity in domain/${E}.ts and the API contract in data/dto.ts
-  2. Render <${Es}Screen /> from your navigator${args.flag ? `\n  3. Enable the flag per brand: features: { '${name}': true }` : ''}
+✔ Done. The module is registered in src/app/modules.ts and shows up as a "${ns}" tab.
+Next:
+  1. Model your entity in domain/${E}.ts and the API contract in data/dto.ts${
+    args.flag && !args.on
+      ? `\n  2. Turn it on: npm run flags -- on ${ns}   (or --brand <id>, or EXPO_PUBLIC_FEATURES=${ns}=on npm start)`
+      : ''
+  }
   Run: npm run verify
 `);

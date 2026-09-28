@@ -1,0 +1,81 @@
+{
+  "$comment": "Framework layer graph. Each module may import only the framework modules listed in dependsOn (enforced by ESLint). Change deliberately and update docs/architecture.md.",
+  "modules": {
+    "ai": {
+      "description": "Vendor-neutral AI client port, tool registry, agent loop, SSE streaming.",
+      "dependsOn": ["di", "foundation", "network", "observability"]
+    },
+    "core": {
+      "description": "BrandConfig, module system, app kernel, FrameworkProvider and FrameworkContext.",
+      "dependsOn": [
+        "ai",
+        "di",
+        "foundation",
+        "i18n",
+        "network",
+        "observability",
+        "presentation",
+        "state",
+        "storage",
+        "theme",
+        "ui"
+      ]
+    },
+    "di": {
+      "description": "Typed, decorator-free dependency injection container with scopes and multi-bindings.",
+      "dependsOn": ["foundation"]
+    },
+    "foundation": {
+      "description": "Result, AppError, emitter, observable store, utilities. Zero dependencies.",
+      "dependsOn": []
+    },
+    "i18n": {
+      "description": "Locale service, ICU-lite interpolation, plurals, RTL, typed translation keys.",
+      "dependsOn": ["di", "foundation"]
+    },
+    "network": {
+      "description": "REST, GraphQL and WebSocket clients with middleware pipeline and auth refresh.",
+      "dependsOn": ["di", "foundation", "observability"]
+    },
+    "observability": {
+      "description": "Logger, crash reporter, analytics and tracing ports with composable adapters.",
+      "dependsOn": ["di", "foundation"]
+    },
+    "presentation": {
+      "description": "MVVM view models and MVI stores bound to React via useSyncExternalStore.",
+      "dependsOn": ["foundation"]
+    },
+    "state": {
+      "description": "Redux Toolkit store factory, dynamic reducer injection, persistence, shell slices.",
+      "dependsOn": ["di", "foundation", "storage"]
+    },
+    "storage": {
+      "description": "Key-value, secure storage and local database ports with adapters.",
+      "dependsOn": ["di", "foundation"]
+    },
+    "testing": {
+      "description": "Test harness: in-memory adapters, mock transports, renderWithFramework.",
+      "dependsOn": [
+        "ai",
+        "core",
+        "di",
+        "foundation",
+        "i18n",
+        "network",
+        "observability",
+        "state",
+        "storage",
+        "theme",
+        "ui"
+      ]
+    },
+    "theme": {
+      "description": "Design tokens, light/dark schemes, brand overrides, ThemeProvider.",
+      "dependsOn": ["foundation"]
+    },
+    "ui": {
+      "description": "Atomic design components (atoms -> templates) with brand-overridable registry.",
+      "dependsOn": ["foundation", "i18n", "theme"]
+    }
+  }
+}

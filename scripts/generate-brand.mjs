@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Scaffolds a new brand package and registers it with the example app and brand contract tests.
+ * Scaffolds a new brand in src/brands/<id> and registers it with the app and the brand contract tests.
  *
  *   npm run gen:brand -- <id> --name "Display Name" --bundle com.company.app [--color "#3D5AFE"] [--locales en,fr]
  *
@@ -39,44 +39,44 @@ const translations = locales
   )
   .join('\n');
 
-writeFiles(join(ROOT, 'brands', id), {
-  'package.json': `${JSON.stringify(
-    {
-      name: `@brands/${id}`,
-      version: '0.1.0',
-      private: true,
-      description: `Brand definition for ${name}.`,
-      main: './src/index.ts',
-      types: './src/index.ts',
-      'react-native': './src/index.ts',
-      exports: { '.': './src/index.ts', './package.json': './package.json' },
-      dependencies: { '@org/core': '0.1.0', '@org/ui': '0.1.0' },
-      peerDependencies: { react: '>=19.0.0' },
-    },
-    null,
-    2,
-  )}\n`,
-  'src/native.json': `${JSON.stringify({ id, displayName: name, app: { bundleId: bundle, scheme: id.replace(/-/g, ''), version: '1.0.0' }, primaryColor: color }, null, 2)}\n`,
-  'src/index.ts': `
-import { defineBrand } from '@org/core';
+const flagRegistry = JSON.parse(readFileSync(join(ROOT, 'src/config/feature-flags.json'), 'utf8'));
+// New brands start from registry defaults; only module flags are listed so they're easy to flip.
+const features = Object.fromEntries(
+  Object.entries(flagRegistry)
+    .filter(([, d]) => d.kind === 'module')
+    .map(([k, d]) => [k, d.default]),
+);
+
+writeFiles(join(ROOT, 'src', 'brands', id), {
+  'native.json': `${JSON.stringify({ id, displayName: name, app: { bundleId: bundle, scheme: id.replace(/-/g, ''), version: '1.0.0' }, primaryColor: color }, null, 2)}\n`,
+  'features.json': `${JSON.stringify(features, null, 2)}\n`,
+  'index.ts': `
+import { defineBrand } from '@framework/core';
+import features from './features.json';
 import native from './native.json';
 
 export default defineBrand({
   config: {
+    // Store identity lives in native.json (shared with app.config.ts).
     id: native.id,
     displayName: native.displayName,
     app: native.app,
     api: { rest: { baseUrl: 'https://api.dev.${id}.example/v1' } },
     i18n: { defaultLocale: '${locales[0]}', supportedLocales: ${JSON.stringify(locales).replace(/"/g, "'")} },
-    features: { todos: true },
+    // Flag values — edit features.json or: npm run flags -- on <flag> --brand ${id}
+    features,
   },
   environments: {
     staging: { api: { rest: { baseUrl: 'https://api.staging.${id}.example/v1' } } },
-    production: { api: { rest: { baseUrl: 'https://api.${id}.example/v1' } }, observability: { logLevel: 'warn' } },
+    production: {
+      api: { rest: { baseUrl: 'https://api.${id}.example/v1' } },
+      observability: { logLevel: 'warn' },
+      features: { devtools: false },
+    },
   },
   theme: {
     name: '${id}',
-    // Only primary is set; run \`npm test\` — the brand contract test audits WCAG contrast.
+    // Only primary is set; \`npm test\` runs the brand contract test (WCAG AA contrast in light + dark).
     colors: { light: { primary: '${color}', focus: '${color}' } },
   },
   translations: {
@@ -86,13 +86,22 @@ ${translations}
 `,
 });
 
-const brandsFile = join(ROOT, 'apps/example/src/bootstrap/brands.ts');
+const brandsFile = join(ROOT, 'src/app/bootstrap/brands.ts');
 insertAfterLast(brandsFile, /^import \w+ from '@brands\//, `import ${ident} from '@brands/${id}';`);
 replaceIn(brandsFile, /export const brands = \{([^}]*)\}/, (m, list) =>
   list.includes(ident) ? m : `export const brands = {${list.trimEnd()}, ${ident} }`,
 );
 
-const contract = join(ROOT, 'brands/acme/src/__tests__/brands.test.tsx');
+// EAS cloud builds don't see your shell env — each brand gets its own build profiles.
+const easFile = join(ROOT, 'eas.json');
+const eas = JSON.parse(readFileSync(easFile, 'utf8'));
+for (const profile of ['development', 'preview', 'production'])
+  eas.build[`${profile}-${id}`] ??= { extends: profile, env: { EXPO_PUBLIC_BRAND: id } };
+eas.submit[`production-${id}`] ??= {};
+writeFileSync(easFile, `${JSON.stringify(eas, null, 2)}\n`);
+console.log('  ~ eas.json');
+
+const contract = join(ROOT, 'src/brands/__tests__/brands.test.tsx');
 insertAfterLast(contract, /^import \w+ from '@brands\//, `import ${ident} from '@brands/${id}';`);
 replaceIn(contract, /const brands: Record<string, BrandDefinition> = \{([^}]*)\}/, (m, list) =>
   list.includes(ident)
@@ -100,23 +109,11 @@ replaceIn(contract, /const brands: Record<string, BrandDefinition> = \{([^}]*)\}
     : `const brands: Record<string, BrandDefinition> = {${list.trimEnd()}, ${ident} }`,
 );
 
-for (const pkgPath of ['apps/example/package.json', 'brands/acme/package.json']) {
-  const file = join(ROOT, pkgPath);
-  const pkg = JSON.parse(readFileSync(file, 'utf8'));
-  const field = pkgPath.startsWith('apps') ? 'dependencies' : 'devDependencies';
-  pkg[field] = Object.fromEntries(
-    Object.entries({ ...pkg[field], [`@brands/${id}`]: '0.1.0' }).sort(([a], [b]) =>
-      a.localeCompare(b),
-    ),
-  );
-  writeFileSync(file, `${JSON.stringify(pkg, null, 2)}\n`);
-  console.log(`  ~ ${pkgPath}`);
-}
-
 console.log(`
-✔ Brand "${id}" created. Next:
-  1. npm install                         (links @brands/${id})
-  2. Fill in API URLs, theme, copy in brands/${id}/src/index.ts
-  3. npm test                            (contract test: config valid in all envs + WCAG AA)
-  4. EXPO_PUBLIC_BRAND=${id} npx expo run:ios   (from apps/example)
+✔ Brand "${id}" created in src/brands/${id}. Next:
+  1. Fill in API URLs, theme, copy in src/brands/${id}/index.ts
+  2. Choose features: npm run flags -- list   ·   npm run flags -- on <flag> --brand ${id}
+  3. npm test                    (contract test: config valid in all envs, registered flags, WCAG AA)
+  4. EXPO_PUBLIC_BRAND=${id} npx expo run:ios
+  5. Store build: eas build --profile production-${id} --platform all
 `);

@@ -1,0 +1,34 @@
+{
+  "todos": {
+    "default": true,
+    "kind": "module",
+    "description": "Tasks feature (reference MVVM feature: list, add, toggle, offline cache, AI tools).",
+    "owner": "app-team"
+  },
+  "todos.showCompleted": {
+    "default": true,
+    "kind": "runtime",
+    "description": "Show completed tasks in the list. Runtime flag: changes apply instantly.",
+    "owner": "app-team",
+    "requires": ["todos"]
+  },
+  "assistant": {
+    "default": false,
+    "kind": "module",
+    "description": "AI assistant tab (MVI + tool calling). Requires ai.enabled in the brand config.",
+    "owner": "ai-team",
+    "requires": ["todos"]
+  },
+  "settings": {
+    "default": true,
+    "kind": "module",
+    "description": "Settings tab: theme, language, analytics consent.",
+    "owner": "app-team"
+  },
+  "devtools": {
+    "default": true,
+    "kind": "runtime",
+    "description": "Developer tab: live feature-flag overrides and build info. Brands turn it off for production.",
+    "owner": "platform"
+  }
+}

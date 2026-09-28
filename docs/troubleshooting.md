@@ -1,52 +1,48 @@
----
-title: Troubleshooting
-description: Fixes for common problems with the React Native monorepo — Metro and workspace resolution, Jest and React Native Testing Library v14, exactOptionalPropertyTypes errors, RTL reloads, streaming AI responses and ESLint boundary errors.
----
+# Troubleshooting & FAQ
 
-# Troubleshooting
+## Troubleshooting
 
-### `Cannot find module '@brands/<id>'` after generating a brand
+**"App configuration error" on launch.** Composition failed before the UI started: unknown `EXPO_PUBLIC_BRAND`,
+invalid brand config (every bad field is listed), an invalid flag registry, or a module rejecting its config (e.g.
+`assistant` on while `ai.enabled` is false).
 
-Run `npm install` from the repo root to link the new workspace.
+**A flag change did nothing.** Module flags apply on the next launch (the Dev tab offers _Restart now_). Overrides are
+ignored with `EXPO_PUBLIC_ENV=production`. `requires` may keep a flag off. Check its source in the Dev tab or run `npm run flags`.
 
-### RNTL: `render function has not been called` / `screen` is empty
+**ESLint: `framework/x may not depend on framework/y`.** That's an architecture boundary. Move the code, or add the edge to
+`src/framework/layers.json` if it's genuinely right.
 
-React Native Testing Library **v14** has async APIs. Use `await render(...)` and `await fireEvent.press(...)`.
+**ESLint: `Features must not depend on the app shell` / `Don't reach into another feature's internals`.** Read brand
+data with `useBrandConfig()`, depend on the other feature's tokens, or move shared code into the framework.
 
-### `… is not assignable … with 'exactOptionalPropertyTypes: true'`
+**ESLint: `domain/ must stay framework-free`.** Put the React, HTTP or storage code in `data/` or `presentation/`, and keep a port in `domain/`.
 
-You passed `undefined` to an optional property. Spread it conditionally:
+**`… not assignable … with exactOptionalPropertyTypes`.** Don't pass `undefined` to optional props. Spread them instead:
+`{ ...(testID ? { testID } : {}) }`.
 
-```ts
-{ ...(testID ? { testID } : {}) }
-```
+**Tests: `render function has not been called` / empty screen.** RNTL v14 is async: `await render(...)`,
+`await fireEvent.press(...)`. Wrap flag changes in `await act(...)`.
 
-### ESLint: `@org/x may not depend on @org/y`
+**`Unable to resolve module @framework/...`.** Check the alias and folder name, then `npx expo start -c`. `npm run bundle:check` reproduces it.
 
-This is an architecture boundary. If the dependency is intended, add it to the package's `package.json` `dependencies` (the rule is generated from it) and check the [layer graph](./architecture.md). Otherwise, move the code to the right layer.
+**Native build out of sync after adding a dependency.** `npx expo prebuild --clean`, then `npm run ios|android`.
 
-### ESLint: `domain/ must stay framework-free`
+**Arabic doesn't flip the layout.** Native layout direction changes after a reload (`syncLayoutDirection` requests one).
 
-Move React, HTTP or storage code into `data/` or `presentation/`, and define a port in `domain/`.
+**`flags doctor` fails in CI.** It lists each problem: unknown or mistyped brand values, a broken `requires`, or a flag used in code but not registered.
 
-### Switching to Arabic doesn't flip the layout
+## FAQ
 
-Native layout direction only changes after a reload. `syncLayoutDirection` calls `requestReload` (the example uses `DevSettings.reload()`; use `expo-updates` `reloadAsync` in release builds).
+**Is this a boilerplate or a framework?** A boilerplate: one Expo app you clone. The framework inside it (`src/framework`)
+keeps the integrated suite maintainable. There's nothing to install or publish.
 
-### AI streaming falls back to a single chunk
+**Do I have to use brands?** You already are: `main`. Single-brand apps just edit it.
 
-`createHttpProxyAIClient` needs a streaming-capable fetch (`fetch` from `expo/fetch`) and `ai.streamUrl` in the brand config. Otherwise it degrades to `complete()`.
+**Which navigation library?** Modules declare `tabs` and a minimal shell renders them. For stacks and deep links, map
+`useModuleTabs()` to expo-router or React Navigation. Flags keep working.
 
-### Jest: "A worker process has failed to exit gracefully"
+**Can I remove the example features?** Yes. See [Getting started](getting-started.md#make-it-your-app-30-minutes).
 
-An app created outside `createTestApp` wasn't stopped. Call `await app.stop()`, or use `createTestApp`, which cleans up automatically.
+**Can I share the framework between apps later?** Extract `src/framework` into a package with a build step when a second app needs it.
 
-### Watchman "Recrawled this watch" warning
-
-```bash
-watchman watch-del "$PWD" ; watchman watch-project "$PWD"
-```
-
-### Metro can't resolve a workspace package
-
-Check that the package's `package.json` has `main`/`react-native`/`exports` pointing at `src/index.ts(x)` and that the file extension matches.
+**Does it support web?** Not configured. Expo web can be added, but the UI kit targets native.
