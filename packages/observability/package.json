@@ -2,7 +2,29 @@
   "name": "@org/observability",
   "version": "0.1.0",
   "description": "Logger, crash reporter, analytics and tracing ports with composable adapters.",
+  "keywords": [
+    "react-native",
+    "typescript",
+    "mobile",
+    "white-label",
+    "expo",
+    "logging",
+    "analytics",
+    "crash-reporting",
+    "tracing",
+    "opentelemetry"
+  ],
+  "homepage": "https://llrizvanll.github.io/Mobile-Apps-Framework/reference/packages/observability",
+  "bugs": {
+    "url": "https://github.com/llRizvanll/Mobile-Apps-Framework/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/llRizvanll/Mobile-Apps-Framework.git",
+    "directory": "packages/observability"
+  },
   "license": "UNLICENSED",
+  "author": "llRizvanll",
   "sideEffects": false,
   "main": "./src/index.ts",
   "types": "./src/index.ts",

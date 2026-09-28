@@ -1,3 +1,8 @@
+---
+title: Architecture
+description: 'Architecture of the React Native framework: hexagonal packages, enforced layer graph, clean-architecture features, boot sequence, HTTP pipeline, design patterns and observability.'
+---
+
 # Architecture
 
 > Hexagonal (ports & adapters) framework + clean-architecture features + a module kernel.

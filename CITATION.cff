@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: 'Mobile App Framework: a white-label, AI-native React Native framework'
+type: software
+authors:
+  - alias: llRizvanll
+repository-code: https://github.com/llRizvanll/Mobile-Apps-Framework
+url: https://llrizvanll.github.io/Mobile-Apps-Framework/
+keywords:
+  - react-native
+  - white-label
+  - typescript
+  - clean-architecture
+  - mobile
+  - ai
+version: 0.1.0

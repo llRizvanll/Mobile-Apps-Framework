@@ -2,7 +2,28 @@
   "name": "@org/core",
   "version": "0.1.0",
   "description": "BrandConfig, module system, app kernel, FrameworkProvider and FrameworkContext.",
+  "keywords": [
+    "react-native",
+    "typescript",
+    "mobile",
+    "white-label",
+    "expo",
+    "framework",
+    "clean-architecture",
+    "modules",
+    "feature-flags"
+  ],
+  "homepage": "https://llrizvanll.github.io/Mobile-Apps-Framework/reference/packages/core",
+  "bugs": {
+    "url": "https://github.com/llRizvanll/Mobile-Apps-Framework/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/llRizvanll/Mobile-Apps-Framework.git",
+    "directory": "packages/core"
+  },
   "license": "UNLICENSED",
+  "author": "llRizvanll",
   "sideEffects": false,
   "main": "./src/index.ts",
   "types": "./src/index.ts",

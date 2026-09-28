@@ -10,3 +10,6 @@ android/
 .env
 .env.*
 !.env.example
+docs/reference/packages/
+docs/.vitepress/cache/
+docs/.vitepress/dist/

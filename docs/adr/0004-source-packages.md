@@ -1,3 +1,8 @@
+---
+title: 'ADR 0004: Source packages'
+description: Why framework packages ship TypeScript source inside the monorepo and how to publish them.
+---
+
 # 0004 — Packages ship TypeScript source
 
 **Decision**: Inside the monorepo, `@org/*` `main`/`exports` point at `src/index.ts`. Metro, Jest and

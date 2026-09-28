@@ -1,3 +1,8 @@
+---
+title: Brands (white-label)
+description: 'How white-labelling works: brand packages with validated config, environment overlays, design tokens, copy and component overrides, native identity and separate brand repos.'
+---
+
 # Brands (white-label)
 
 One codebase → many store apps. A brand is a small workspace package in `brands/<id>/`:

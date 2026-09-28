@@ -1,3 +1,8 @@
+---
+title: Architecture decision records
+description: Architecture decision records (ADRs) explaining the key design choices of the React Native framework.
+---
+
 # Architecture Decision Records
 
 | #                                           | Decision                                                                             |

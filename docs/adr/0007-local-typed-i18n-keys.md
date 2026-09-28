@@ -1,3 +1,8 @@
+---
+title: 'ADR 0007: Local typed i18n keys'
+description: Why translation keys are typed locally with generics instead of global module augmentation.
+---
+
 # 0007 — Local typed translation keys
 
 **Context**: A global `TranslationRegistry` augmentation retypes every package in the monorepo, so two

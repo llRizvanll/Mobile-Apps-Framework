@@ -2,7 +2,40 @@
   "name": "mobile-app-framework",
   "private": true,
   "version": "0.1.0",
-  "description": "AI-native, white-label React Native framework (@org/*)",
+  "description": "White-label, AI-native React Native framework in strict TypeScript: clean architecture, MVVM & MVI, DI, Redux Toolkit, REST/GraphQL/WebSocket, i18n & RTL, design tokens, observability and LLM tool calling.",
+  "keywords": [
+    "react-native",
+    "react-native-framework",
+    "react-native-boilerplate",
+    "white-label",
+    "multi-brand",
+    "expo",
+    "monorepo",
+    "typescript",
+    "clean-architecture",
+    "mvvm",
+    "mvi",
+    "dependency-injection",
+    "redux-toolkit",
+    "graphql",
+    "websocket",
+    "i18n",
+    "rtl",
+    "design-tokens",
+    "observability",
+    "ai",
+    "llm",
+    "agents"
+  ],
+  "homepage": "https://llrizvanll.github.io/Mobile-Apps-Framework/",
+  "bugs": {
+    "url": "https://github.com/llRizvanll/Mobile-Apps-Framework/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/llRizvanll/Mobile-Apps-Framework.git"
+  },
+  "author": "llRizvanll",
   "workspaces": [
     "packages/*",
     "brands/*",
@@ -20,7 +53,11 @@
     "test:watch": "jest --watch",
     "verify": "npm run typecheck && npm run lint && npm test",
     "gen:feature": "node scripts/generate-feature.mjs",
-    "gen:brand": "node scripts/generate-brand.mjs"
+    "gen:brand": "node scripts/generate-brand.mjs",
+    "docs:sync": "node scripts/sync-docs.mjs",
+    "docs:dev": "npm run docs:sync && vitepress dev docs",
+    "docs:build": "npm run docs:sync && vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
@@ -36,6 +73,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.12.0",
     "jest": "^30.5.2",
+    "mermaid": "^11.17.2",
     "prettier": "^3.9.9",
     "react": "^19.2.3",
     "react-native": "^0.86.3",
@@ -43,6 +81,8 @@
     "test-renderer": "^1.3.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.0",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17",
     "zod": "^4.6.5"
   }
 }

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://llrizvanll.github.io/Mobile-Apps-Framework/sitemap.xml

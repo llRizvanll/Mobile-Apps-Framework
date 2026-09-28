@@ -1,0 +1,37 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      react-native-expo:
+        patterns:
+          [
+            'react',
+            'react-native',
+            'expo',
+            'expo-*',
+            '@react-native/*',
+            'react-native-*',
+            'babel-preset-expo',
+          ]
+      lint-test:
+        patterns:
+          [
+            'eslint*',
+            '@eslint/*',
+            'typescript-eslint',
+            'jest',
+            '@types/*',
+            '@testing-library/*',
+            'prettier',
+            'typescript',
+          ]
+      docs:
+        patterns: ['vitepress', 'vitepress-*', 'mermaid']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

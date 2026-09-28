@@ -4,3 +4,6 @@ dist
 .expo
 package-lock.json
 .vscode
+docs/.vitepress/dist
+docs/.vitepress/cache
+docs/reference/packages

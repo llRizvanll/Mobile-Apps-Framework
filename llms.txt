@@ -4,12 +4,16 @@
 > clean-architecture feature modules, MVVM/MVI, typed DI, Redux Toolkit, REST/GraphQL/WebSocket,
 > i18n + RTL, design tokens, observability, vendor-neutral AI with tool calling.
 
+Docs site: https://llrizvanll.github.io/Mobile-Apps-Framework/
+
 ## Start here
 - [AGENTS.md](AGENTS.md): commands, invariants, where code goes
 - [Architecture](docs/architecture.md): layer graph, boot sequence, HTTP pipeline, patterns
 - [Building features](docs/features.md): checklist and rules of thumb
 - [Brands](docs/brands.md): white-labelling and brand repos
 - [ADRs](docs/adr/README.md): why things are the way they are
+- [Workflows](docs/workflows/README.md): boot, request lifecycle, state, AI agent, feature dev, release, testing, CI/CD
+- [Core concepts](docs/guide/core-concepts.md) · [Glossary](docs/glossary.md) · [FAQ](docs/faq.md) · [Troubleshooting](docs/troubleshooting.md)
 
 ## Packages
 - [foundation](packages/foundation/README.md), [di](packages/di/README.md), [observability](packages/observability/README.md), [storage](packages/storage/README.md)

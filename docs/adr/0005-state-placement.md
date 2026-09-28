@@ -1,3 +1,8 @@
+---
+title: 'ADR 0005: State placement'
+description: 'Where state lives: Redux Toolkit for shell state, view models and MVI stores for screen state, custom persistence.'
+---
+
 # 0005 — Where state lives
 
 **Decision**:

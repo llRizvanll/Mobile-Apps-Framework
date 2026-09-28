@@ -2,7 +2,30 @@
   "name": "@org/network",
   "version": "0.1.0",
   "description": "REST, GraphQL and WebSocket clients with middleware pipeline and auth refresh.",
+  "keywords": [
+    "react-native",
+    "typescript",
+    "mobile",
+    "white-label",
+    "expo",
+    "http-client",
+    "graphql",
+    "websocket",
+    "graphql-ws",
+    "oauth",
+    "retry"
+  ],
+  "homepage": "https://llrizvanll.github.io/Mobile-Apps-Framework/reference/packages/network",
+  "bugs": {
+    "url": "https://github.com/llRizvanll/Mobile-Apps-Framework/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/llRizvanll/Mobile-Apps-Framework.git",
+    "directory": "packages/network"
+  },
   "license": "UNLICENSED",
+  "author": "llRizvanll",
   "sideEffects": false,
   "main": "./src/index.ts",
   "types": "./src/index.ts",

@@ -1,3 +1,8 @@
+---
+title: Building features
+description: 'Checklist for building clean-architecture React Native features: domain rules, repository ports, zod DTOs, dependency injection, MVVM or MVI, i18n, AI tools and tests.'
+---
+
 # Building a feature
 
 ```bash

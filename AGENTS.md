@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Instructions for AI coding agents (Claude Code, Codex, Cursor, Copilot…) working in this repo.
-Humans: this is also the fastest orientation. Deeper docs: `docs/architecture.md`, `docs/features.md`, `docs/brands.md`, `docs/adr/`.
+Humans: this is also the fastest orientation. Deeper docs: `docs/architecture.md`, `docs/features.md`, `docs/brands.md`, `docs/workflows/`, `docs/adr/`.
 
 ## What this is
 
@@ -20,6 +20,7 @@ Expo app (`apps/example`). Hexagonal framework, clean-architecture features, MVV
 | New brand                                      | `npm run gen:brand -- <id> --name "…" --bundle com.x.y [--color "#hex"] [--locales en,fr]` |
 | Bundle check (Metro)                           | `cd apps/example && CI=1 npx expo export --platform ios`                                   |
 | Run app                                        | `cd apps/example && EXPO_PUBLIC_BRAND=acme npx expo run:ios`                               |
+| Docs site (local / build)                      | `npm run docs:dev` · `npm run docs:build`                                                  |
 
 ## Where things go
 
@@ -56,4 +57,5 @@ Expo app (`apps/example`). Hexagonal framework, clean-architecture features, MVV
 ## Definition of done
 
 `npm run verify` passes, new behaviour has tests, no new lint disables without a `-- reason`, docs
-updated if you changed a public API or a convention.
+updated if you changed a public API or a convention (package README, `docs/`, and a workflow diagram if a flow changed).
+New docs pages need `title`/`description` frontmatter and a sidebar entry (see `docs/maintainers.md`).

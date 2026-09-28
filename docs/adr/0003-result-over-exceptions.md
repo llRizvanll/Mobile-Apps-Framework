@@ -1,3 +1,8 @@
+---
+title: 'ADR 0003: Result over exceptions'
+description: Why data-layer APIs return Result values and a typed AppError instead of throwing.
+---
+
 # 0003 — `Result` at data boundaries
 
 **Decision**: Repositories, HTTP/GraphQL clients and AI clients return `Result<T, AppError>`. Throwing

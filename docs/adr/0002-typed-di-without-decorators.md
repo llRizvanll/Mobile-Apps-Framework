@@ -1,3 +1,8 @@
+---
+title: 'ADR 0002: Typed DI without decorators'
+description: Why the framework uses a typed token DI container instead of decorator-based DI like Inversify or tsyringe.
+---
+
 # 0002 — Typed DI without decorators
 
 **Status**: accepted

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0F1535"/>
+      <stop offset="1" stop-color="#1B2A7A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g transform="translate(930,120)">
+    <rect x="0" y="0" width="190" height="360" rx="34" fill="#3D5AFE"/>
+    <rect x="22" y="36" width="146" height="236" rx="12" fill="#FFFFFF"/>
+    <rect x="42" y="64" width="106" height="30" rx="8" fill="#C2185B"/>
+    <rect x="42" y="114" width="106" height="30" rx="8" fill="#00695C"/>
+    <rect x="42" y="164" width="70" height="30" rx="8" fill="#3D5AFE"/>
+    <circle cx="95" cy="315" r="16" fill="#FFFFFF"/>
+  </g>
+  <text x="80" y="150" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="600" fill="#9FB0FF">Open-source · React Native · TypeScript strict</text>
+  <text x="80" y="240" font-family="Helvetica, Arial, sans-serif" font-size="70" font-weight="800" fill="#FFFFFF">Mobile App Framework</text>
+  <text x="80" y="310" font-family="Helvetica, Arial, sans-serif" font-size="38" font-weight="500" fill="#DDE1FF">One codebase. Many brands. AI-native.</text>
+  <g font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="600" fill="#FFFFFF">
+    <rect x="80" y="380" width="262" height="50" rx="25" fill="#FFFFFF" fill-opacity="0.12"/><text x="104" y="413">Clean architecture</text>
+    <rect x="358" y="380" width="180" height="50" rx="25" fill="#FFFFFF" fill-opacity="0.12"/><text x="382" y="413">MVVM · MVI</text>
+    <rect x="554" y="380" width="180" height="50" rx="25" fill="#FFFFFF" fill-opacity="0.12"/><text x="578" y="413">White-label</text>
+    <rect x="80" y="446" width="376" height="50" rx="25" fill="#FFFFFF" fill-opacity="0.12"/><text x="104" y="479">REST · GraphQL · WebSocket</text>
+    <rect x="472" y="446" width="216" height="50" rx="25" fill="#FFFFFF" fill-opacity="0.12"/><text x="496" y="479">AI tool calling</text>
+  </g>
+  <text x="80" y="570" font-family="Helvetica, Arial, sans-serif" font-size="26" fill="#9FB0FF">github.com/llRizvanll/Mobile-Apps-Framework</text>
+</svg>

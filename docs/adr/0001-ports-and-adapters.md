@@ -1,3 +1,8 @@
+---
+title: 'ADR 0001: Ports & adapters'
+description: Why the framework uses ports and adapters with structural adapter types and no native dependencies.
+---
+
 # 0001 — Ports & adapters, structural adapter types
 
 **Status**: accepted

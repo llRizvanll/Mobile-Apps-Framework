@@ -51,6 +51,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/coverage/**',
       '**/.expo/**',
+      'docs/.vitepress/**',
       '**/*.config.js',
       'scripts/templates/**',
     ],

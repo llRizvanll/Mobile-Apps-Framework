@@ -1,3 +1,8 @@
+---
+title: 'ADR 0006: Vendor-neutral AI'
+description: Why AI calls go through a vendor-neutral client and a backend proxy, and why tools call use cases.
+---
+
 # 0006 — Vendor-neutral AI
 
 **Decision**: Apps depend on the `AIClient` port (chat, stream, tool calls) and logical model tiers
