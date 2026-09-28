@@ -1,0 +1,10 @@
+{
+  "id": "acme",
+  "displayName": "Acme Tasks",
+  "app": {
+    "bundleId": "com.acme.tasks",
+    "scheme": "acmetasks",
+    "version": "1.0.0"
+  },
+  "primaryColor": "#C2185B"
+}

@@ -1,0 +1,14 @@
+{
+  "extends": "./tooling/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "packages/*/src",
+    "brands/*/src",
+    "apps/*/src",
+    "apps/*/app.config.ts",
+    "apps/*/index.ts",
+    "apps/*/env.d.ts"
+  ]
+}

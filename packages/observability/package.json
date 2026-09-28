@@ -1,0 +1,22 @@
+{
+  "name": "@org/observability",
+  "version": "0.1.0",
+  "description": "Logger, crash reporter, analytics and tracing ports with composable adapters.",
+  "license": "UNLICENSED",
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "react-native": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "!src/**/__tests__"
+  ],
+  "dependencies": {
+    "@org/foundation": "0.1.0",
+    "@org/di": "0.1.0"
+  }
+}

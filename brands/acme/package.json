@@ -1,0 +1,24 @@
+{
+  "name": "@brands/acme",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Brand definition for acme (config, theme, copy, component overrides).",
+  "main": "./src/index.tsx",
+  "types": "./src/index.tsx",
+  "react-native": "./src/index.tsx",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@org/core": "0.1.0",
+    "@org/ui": "0.1.0"
+  },
+  "peerDependencies": {
+    "react": ">=19.0.0"
+  },
+  "devDependencies": {
+    "@brands/globex": "0.1.0",
+    "@org/theme": "0.1.0"
+  }
+}

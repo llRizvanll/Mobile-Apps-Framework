@@ -1,0 +1,37 @@
+{
+  "name": "@org/core",
+  "version": "0.1.0",
+  "description": "BrandConfig, module system, app kernel, FrameworkProvider and FrameworkContext.",
+  "license": "UNLICENSED",
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "react-native": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "!src/**/__tests__"
+  ],
+  "dependencies": {
+    "@org/foundation": "0.1.0",
+    "@org/di": "0.1.0",
+    "@org/observability": "0.1.0",
+    "@org/storage": "0.1.0",
+    "@org/network": "0.1.0",
+    "@org/state": "0.1.0",
+    "@org/i18n": "0.1.0",
+    "@org/theme": "0.1.0",
+    "@org/presentation": "0.1.0",
+    "@org/ui": "0.1.0",
+    "@org/ai": "0.1.0",
+    "zod": "^4.6.5"
+  },
+  "peerDependencies": {
+    "react": ">=19.0.0",
+    "react-native": ">=0.80.0",
+    "react-redux": "^9.0.0"
+  }
+}

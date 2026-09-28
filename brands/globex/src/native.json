@@ -1,0 +1,10 @@
+{
+  "id": "globex",
+  "displayName": "Globex Work",
+  "app": {
+    "bundleId": "com.globex.work",
+    "scheme": "globexwork",
+    "version": "2.3.0"
+  },
+  "primaryColor": "#00695C"
+}
