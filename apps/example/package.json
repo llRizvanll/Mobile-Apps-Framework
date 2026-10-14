@@ -26,13 +26,13 @@
     "@org/ui": "0.1.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "babel-preset-expo": "~57.0.13",
-    "expo": "~57.0.25",
+    "expo": "~58.0.7",
     "expo-localization": "~57.0.2",
     "expo-secure-store": "~57.0.4",
     "expo-status-bar": "~57.0.1",
-    "react": "19.2.3",
-    "react-native": "0.86.3",
-    "react-native-safe-area-context": "~5.7.0",
+    "react": "19.3.0",
+    "react-native": "0.87.1",
+    "react-native-safe-area-context": "~5.10.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {
